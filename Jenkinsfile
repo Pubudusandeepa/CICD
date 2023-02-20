@@ -7,9 +7,7 @@ pipeline {
                 sh "sudo npm run build"
             }
         }
-    }
 
-    stages {
         stage("Deploy"){
             steps {
                 sh "sudo rm -rf /var/www/react-app"
@@ -17,4 +15,8 @@ pipeline {
             }
         }
     }
+
+
+
+
 }
