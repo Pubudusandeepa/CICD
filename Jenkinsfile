@@ -1,16 +1,28 @@
 pipeline {
-     agent any
-     stages {
-        stage("Build") {
-            steps {
-                sh "sudo npm install"
-                sh "sudo npm run build"
+    agent { label 'node-agent' }
+    
+    stages{
+        stage('Code'){
+            steps{
+                git url: 'https://github.com/LondheShubham153/node-todo-cicd.git', branch: 'master' 
             }
         }
-        stage("Deploy") {
-            steps {
-                sh "sudo rm -rf /var/www/react-app"
-                sh "sudo cp -r ${WORKSPACE}/build/ /var/www/react-app/"
+        stage('Build and Test'){
+            steps{
+                sh 'docker build . -t trainwithshubham/node-todo-test:latest'
+            }
+        }
+        stage('Push'){
+            steps{
+                withCredentials([usernamePassword(credentialsId: 'dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+        	     sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
+                 sh 'docker push trainwithshubham/node-todo-test:latest'
+                }
+            }
+        }
+        stage('Deploy'){
+            steps{
+                sh "docker-compose down && docker-compose up -d"
             }
         }
     }
